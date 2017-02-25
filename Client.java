@@ -1,24 +1,25 @@
 package srcfiles;
 
+
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class Client {
 
     private String userName;
     private String password;
     private static String clientAddress;
+    private BufferedReader in;
+    private PrintWriter out;
+
+    public Client(String userName) {
+        this.userName = userName;
+    }
 
 
     public Client(String userName, String password) {
         this.userName = userName;
         this.password = password;
-
     }
 
 
@@ -41,5 +42,25 @@ public class Client {
 
     public String getClientAddress() {
         return clientAddress;
+    }
+
+    public static void setClientAddress(String clientAddress) {
+        Client.clientAddress = clientAddress;
+    }
+
+    public BufferedReader getIn() {
+        return in;
+    }
+
+    public void setIn(BufferedReader in) {
+        this.in = in;
+    }
+
+    public PrintWriter getOut() {
+        return out;
+    }
+
+    public void setOut(PrintWriter out) {
+        this.out = out;
     }
 }

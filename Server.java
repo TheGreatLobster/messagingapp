@@ -13,17 +13,26 @@ public class Server {
 
     public static int portNumber = 5555;
     public static ArrayList<Client> clients;
+    public BufferedReader socketIn;
+    public PrintWriter socketOut;
 
 
     public static void main(String[] args) throws IOException
     {
 
         clients = new ArrayList<>();
+        //adminUser for later implementation if wanted/necessary
         Client admin = new Client("admin", "admin");
         addClientToList(admin);
 
-        Client client1 = new Client("Per", "PerPassord");
-        addClientToList(admin);
+        //for testing: later clients would register/login in the application and added to Arraylist "clients"
+        //This way we can connect existing users to a chat room.
+        Client client1 = new Client("Per", "Perpassord");
+        Client client2 = new Client("Kari", "Karipassord");
+        addClientToList(client1);
+        addClientToList(client2);
+
+
 
         if (args.length > 0)
         {
@@ -65,22 +74,22 @@ public class Server {
     }
 
     public static void addClientToList(Client client) {
-        if(findClientInList(client) == null) {
+        if(findClientInList(client.getUserName()) == null) {
             clients.add(client);
         }
     }
 
-    public static Client findClientInList(Client client) {
+    public static Client findClientInList(String userName) {
         for (Client c : clients) {
-            if(c.getUserName().equalsIgnoreCase(client.getUserName())) {
-                return client;
+            if(c.getUserName().equalsIgnoreCase(userName)) {
+                return c;
             }
         }
         return null;
     }
 
     public static void removeClientFromList(Client client) {
-        if(findClientInList(client) != null) {
+        if(findClientInList(client.getUserName()) != null) {
             clients.remove(client);
         }
     }
@@ -94,6 +103,8 @@ public class Server {
         Socket connectSocket;
         InetAddress clientAddr;
         int serverPort, clientPort;
+        BufferedReader socketIn;
+        PrintWriter socketOut;
 
         public ClientServer(Socket connectSocket)
         {
@@ -101,10 +112,15 @@ public class Server {
             clientAddr = connectSocket.getInetAddress();
             clientPort = connectSocket.getPort();
             serverPort = connectSocket.getLocalPort();
+
         }
 
         public void run()
         {
+            //Here we must implement a check to see if the client is already connected! We can do this since we never close the socket
+            //unless user types "EXIT"
+
+
             System.out.println("Ny tråd for client [" + clientAddr.getHostAddress() +  ":" + clientPort +"] ");
             try (
                     // Create server socket with the given port number
@@ -112,29 +128,49 @@ public class Server {
                             new PrintWriter(connectSocket.getOutputStream(), true);
                     // Stream reader from the connection socket
                     BufferedReader in = new BufferedReader(
-                            new InputStreamReader(connectSocket.getInputStream()));
+                            new InputStreamReader(connectSocket.getInputStream()))
             )
             {
+                //These will be passed on to the correct client object, parts[0} (the splitted receivedText)
+                socketIn = in;
+                socketOut = out;
 
-                String receivedText;
 
+                String receivedText; //= in.readLine();
 
 
                 // read from the connection socket
-                while (((receivedText = in.readLine()) != null))
+                while ((receivedText = in.readLine()) != null)
                 {
                     System.out.println("Client [" + clientAddr.getHostAddress() +  ":" + clientPort +"] > " + receivedText);
 
-                    // Write the converted uppercase string to the connection socket
-                    String outText = receivedText.toUpperCase();
+                    // Splits the receivedText from socket into 3 parts, max. This way we can see who is the sender, and who is the receiver.
+                    String[] parts = receivedText.split(":", 3);
 
-                    out.println(outText);
-                    System.out.println("I (Server) [" + connectSocket.getLocalAddress().getHostAddress() + ":" + serverPort +"] > " + outText);
+
+                    Client sender = findClientInList(parts[0]);
+                    Client  receiver = findClientInList(parts[1]);
+
+
+                    if(sender != null && receiver  != null) {
+                        System.out.println("Found both clients, sender and receiver!");
+                        //As of now this sends text back to the sender, this WILL be changed to the receiving end ie. parts[1]
+                        out.println(parts[2]);
+
+                    }
+
+
+
+                    if(parts[2].equals("EXIT")) {
+                        System.out.println("Ferdig med å lese fra textfeltet");
+                        out.println("Closing session with " + parts[1]);
+                        // close the connection socket
+                        connectSocket.close();
+                        break;
+                    }
                 }
 
-                System.out.println("Ferdig med å lese fra textfeltet");
-                // close the connection socket
-                //connectSocket.close();
+
 
             } catch (IOException e)
             {

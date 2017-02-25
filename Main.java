@@ -31,19 +31,24 @@ public class Main extends Application {
         //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
 
 
-        //Create clients and connecting them to the server (server must be running)
-        Client client1 = new Client("Sigrid", "Sigridpassord");
-        Client client2 = new Client("Test", "Testpassord");
+        //For testing: Create clients and connecting them to the server (server must be running)
+        Client client1 = new Client("Per", "Perpassord");
+        Client client2 = new Client("Kari", "Karipassord");
 
 
-        createMessageWindow(primaryStage, client1);
+
+        //need to create the following methods:
+        // 1. getAllConnectedClients
+        // 2. Different stages: login, serverGUI, and some way to choose who you talk to
+        // 3.
 
 
+        createMessageWindow(primaryStage, client1, client2);
 
 
 
     }
-    private void createMessageWindow(Stage primaryStage, Client client) {
+    private void createMessageWindow(Stage primaryStage, Client client1, Client client2) {
 
         GridPane root = new GridPane();
         Scene scene = new Scene(root,400,400);
@@ -68,12 +73,6 @@ public class Main extends Application {
 
             @Override
             public void handle(ActionEvent event) {
-                /*
-                String test = textFieldMessage.getText();
-                System.out.println(test);
-                textAreaMessages.appendText(test + "\n");
-                textFieldMessage.setText("");
-                */
 
                 try
                         (
@@ -103,11 +102,15 @@ public class Main extends Application {
 
                     while ((userInput = textFieldMessage.getText()) != null && !userInput.isEmpty()) {
 
+                        //client1 and 2 will be retrieved from another function(from the server) later in the implementation
+                        out.print(client1.getUserName() + ":" + client2.getUserName() + ":");
+
                         System.out.println("From textField: " + userInput);
                         out.println(userInput);
 
                         String receivedText = in.readLine();
 
+                        System.out.println("Received from server: " + receivedText);
                         textAreaMessages.appendText(receivedText + "\n");
 
                         textFieldMessage.setText("");
